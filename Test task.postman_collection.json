@@ -1,0 +1,249 @@
+{
+  "info": {
+    "_postman_id": "8265e1c4-3c99-450c-a734-874bcb9b1cb0",
+    "name": "Test task",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51476201",
+    "_collection_link": "https://go.postman.co/collection/51476201-8265e1c4-3c99-450c-a734-874bcb9b1cb0?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const jsonData = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Перевірка типів: id (число/рядок), name - string, data - object\", function () {\r",
+              "    pm.expect(jsonData).to.be.an('array');\r",
+              "\r",
+              "    jsonData.forEach((item, index) => {\r",
+              "        // Перетворюємо в число і перевіряємо, чи воно ціле\r",
+              "        const idValue = Number(item.id); \r",
+              "        pm.expect(!isNaN(idValue), `ID у [${index}] не є числом`).to.be.true;\r",
+              "        pm.expect(Number.isInteger(idValue), `ID у [${index}] не ціле`).to.be.true;\r",
+              "\r",
+              "        pm.expect(item.name).to.be.a('string');\r",
+              "\r",
+              "       pm.expect(typeof item.data, `Поле 'data' у [${index}] відсутнє або не є об'єктом/null`).to.equal('object');\r",
+              "        \r",
+              "    });\r",
+              "});\r",
+              "\r",
+              "const jsonData2 = pm.response.json();\r",
+              "\r",
+              "if (Array.isArray(jsonData) && jsonData.length > 0) {\r",
+              "    // 1. Витягуємо всі ID, конвертуємо їх у числа\r",
+              "    const allIds = jsonData.map(item => Number(item.id));\r",
+              "    // 2. Знаходимо максимальне значення\r",
+              "    const maxId = Math.max(...allIds);\r",
+              "    // 3. Записуємо у змінну оточення\r",
+              "    pm.environment.set(\"max_id\", maxId);\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://api.restful-api.dev/objects",
+          "protocol": "https",
+          "host": [
+            "api",
+            "restful-api",
+            "dev"
+          ],
+          "path": [
+            "objects"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Post data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const jsonData = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Перевірка наявності всіх параметрів структури\", function () {\r",
+              "    // 1. Перевірка кореневих параметрів\r",
+              "    pm.expect(jsonData).to.have.property('id');\r",
+              "    pm.expect(jsonData).to.have.property('name');\r",
+              "    pm.expect(jsonData).to.have.property('createdAt');\r",
+              "    pm.expect(jsonData).to.have.property('data');\r",
+              "    // 2. Перевірка вкладених параметрів усередині data\r",
+              "    const data = jsonData.data;\r",
+              "    pm.expect(data).to.have.property('Generation');\r",
+              "    pm.expect(data).to.have.property('Price');\r",
+              "    pm.expect(data).to.have.property('Color');\r",
+              "    pm.expect(data).to.have.property('Capacity');\r",
+              "});\r",
+              "\r",
+              "const id = jsonData.id;\r",
+              "pm.environment.set(\"current_id\", id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Беремо значення max_id зі зміних оточення\r",
+              "let maxId = pm.environment.get(\"max_id\");\r",
+              "// 2. Перетворюємо у число та додаємо 1\r",
+              "let nextId = Number(maxId) + 1;\r",
+              "// 3. Записуємо результат у змінну для використання як {{incremented_id}}\r",
+              "pm.variables.set(\"incremented_id\", nextId);\r",
+              "\r",
+              "const brands = [\"Samsung\", \"iPhone\", \"Google Pixel\", \"Xiaomi\", \"OnePlus\", \"Huawei\"];\r",
+              "const series = [\"Pro\", \"Max\", \"Ultra\", \"Lite\", \"Plus\", \"SE\", \"Neo\"];\r",
+              "// 2. Функція для отримання випадкового елемента\r",
+              "const getRandom = (list) => list[Math.floor(Math.random() * list.length)];\r",
+              "// 3. Генерація назви\r",
+              "// Наприклад: \"Samsung Galaxy S24 Ultra\" або \"Google Pixel 8 Pro\"\r",
+              "const randomBrand = getRandom(brands);\r",
+              "const randomModel = Math.floor(Math.random() * 15) + 1; // Число від 1 до 15\r",
+              "const randomSeries = getRandom(series);\r",
+              "const phoneName = `${randomBrand} ${randomModel} ${randomSeries}`;\r",
+              "// 4. Запис у змінну (Collection або Environment)\r",
+              "pm.collectionVariables.set(\"random_phone_name\", phoneName);\r",
+              "\r",
+              "\r",
+              "const generations = [\"4th Generation\", \"5th Generation\", \"6th Generation\", \"2024 Edition\", \"Latest Gen\"];\r",
+              "const colors = [\"Cloudy White\", \"Space Grey\", \"Midnight Blue\", \"Phantom Black\", \"Deep Purple\"];\r",
+              "const capacities = [\"128 GB\", \"256 GB\", \"512 GB\", \"1 TB\"];\r",
+              "// 2. Функція вибору випадкового елемента\r",
+              "const getRandom2 = (list) => list[Math.floor(Math.random() * list.length)];\r",
+              "// 3. Генерація\r",
+              "const randomGeneration = getRandom2(generations);\r",
+              "const randomColor = getRandom2(colors);\r",
+              "const randomCapacity = getRandom2(capacities);\r",
+              "// Ціна від 400 до 1200\r",
+              "const randomPrice = (Math.random() * (1200 - 400) + 400).toFixed(2);\r",
+              "// 4. Запис у змінні\r",
+              "pm.variables.set(\"gen_val\", randomGeneration);\r",
+              "pm.variables.set(\"color_val\", randomColor);\r",
+              "pm.variables.set(\"price_val\", Number(randomPrice)); \r",
+              "pm.variables.set(\"cap_val\", randomCapacity);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"{{random_phone_name}}\",\r\n    \"data\": {\r\n        \"Generation\": \"{{gen_val}}\",\r\n            \"Price\": \"{{price_val}}\",\r\n            \"Color\": \"{{color_val}}\",\r\n            \"Capacity\": \"{{cap_val}}\"\r\n\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://api.restful-api.dev/objects",
+          "protocol": "https",
+          "host": [
+            "api",
+            "restful-api",
+            "dev"
+          ],
+          "path": [
+            "objects"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Body matches parameters\", function () {\r",
+              "    const jsonData = pm.response.json();\r",
+              "        pm.expect(jsonData).to.include.all.keys(\"message\")\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Body matches text\", function () {\r",
+              "    let сurrentID = pm.environment.get(\"current_id\");\r",
+              "    pm.expect(pm.response.text()).to.include(\"Object with id =\", сurrentID, \"has been deleted.\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "https://api.restful-api.dev/objects/{{current_id}}/",
+          "protocol": "https",
+          "host": [
+            "api",
+            "restful-api",
+            "dev"
+          ],
+          "path": [
+            "objects",
+            "{{current_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "random_phone_name",
+      "value": ""
+    }
+  ]
+}
